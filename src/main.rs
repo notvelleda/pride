@@ -3,13 +3,14 @@ pub mod bitmap;
 pub mod util;
 pub mod flag;
 
+use crate::bitmap::Color;
+use crate::flag::{Flag, render_flag};
 use crate::render::{
     create_renderer,
     list_renderers,
     list_options,
     Renderers,
 };
-use crate::flag::{Flag, render_flag};
 use clap::Parser;
 use std::{
     fs,
@@ -32,6 +33,10 @@ struct Args {
     /// options to pass to the renderer (try "--renderer-options list" to list all available renderer options)
     #[clap(short = 'o', long)]
     renderer_options: Option<String>,
+
+    /// background color in hex notation
+    #[clap(short, long, default_value_t = Color::new(0, 0, 0))]
+    background: Color,
 }
 
 fn main() {
@@ -67,7 +72,13 @@ fn main() {
     let flag = fs::read_to_string(args.flag).unwrap();
 
     // convert yaml to our flag struct
-    let flag: Flag = serde_yaml::from_str(&flag).unwrap();
+    let flag: Flag = match serde_yaml::from_str(&flag) {
+        Ok(flag) => flag,
+        Err(err) => {
+            eprintln!("error parsing flag: {}", err);
+            exit(1);
+        },
+    };
 
-    render_flag(&mut renderer, &flag);
+    render_flag(&mut renderer, &flag, args.background);
 }

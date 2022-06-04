@@ -80,7 +80,7 @@ impl Renderer for FramebufferRenderer {
         let _ = Framebuffer::set_kd_mode(KdMode::Graphics).unwrap();
 
         // draw image
-        let _ = framebuffer.write_frame(&frame);
+        framebuffer.write_frame(&frame);
 
         let stdin = stdin();
         let mut stdout = stdout().into_raw_mode().unwrap(); // stdout needs to be set to raw mode to read individual characters

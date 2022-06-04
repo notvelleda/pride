@@ -1,7 +1,7 @@
 //! flag structure and rendering
 
 use serde::Deserialize;
-use crate::bitmap::Bitmap;
+use crate::bitmap::{Bitmap, Color};
 use crate::util::PartialSize;
 use crate::render::Renderer;
 
@@ -39,7 +39,7 @@ pub struct FlagSubSection {
 }
 
 /// render the given flag with the given renderer
-pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag) {
+pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag, background: Color) {
     // get size we can render to
     let (width, height) = renderer.get_size();
     let aspect = width as f64 / height as f64;
@@ -55,27 +55,30 @@ pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag) {
 
     // calculate flag size and position
     if aspect > flag_aspect {
-        flag_width = (flag_aspect * height as f64).round() as usize;
-        flag_height = height;
-        flag_x = (width as f64 / 2.0 - flag_width as f64 / 2.0).round() as usize;
-        flag_y = 0;
+        flag_width = flag_aspect * height as f64;
+        flag_height = height as f64;
+        flag_x = width as f64 / 2.0 - flag_width as f64 / 2.0;
+        flag_y = 0.0;
     } else if aspect < flag_aspect {
-        flag_width = width;
-        flag_height = (1.0 / flag_aspect * width as f64).round() as usize;
-        flag_x = 0;
-        flag_y = (height as f64 / 2.0 - flag_height as f64 / 2.0).round() as usize;
+        flag_width = width as f64;
+        flag_height = 1.0 / flag_aspect * width as f64;
+        flag_x = 0.0;
+        flag_y = height as f64 / 2.0 - flag_height as f64 / 2.0;
     } else {
-        flag_width = width;
-        flag_height = height;
-        flag_x = 0;
-        flag_y = 0;
+        flag_width = width as f64;
+        flag_height = height as f64;
+        flag_x = 0.0;
+        flag_y = 0.0;
     }
 
     // create a new bitmap
     let mut bitmap = Bitmap::new(width, height);
 
+    // fill bitmap with background color
+    bitmap.draw_rect(0, 0, width, height, background);
+
     // x position of current section- used to keep track of where we are and make sure we don't exceed the valid flag width
-    let mut section_x = 0;
+    let mut section_x = 0.0;
 
     // iterate over all flag sections (horizontal)
     for section in flag.sections.iter() {
@@ -83,7 +86,7 @@ pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag) {
         let section_width_raw = section.width.as_number().expect("invalid section width");
 
         // calculate width of section
-        let mut section_width = (section_width_raw * flag_width as f64).round() as usize;
+        let mut section_width = section_width_raw * flag_width;
 
         // clamp section width to edge of flag
         if section_x + section_width > flag_width {
@@ -91,12 +94,12 @@ pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag) {
         }
 
         // y position of current subsection, serves same purpose as section_x
-        let mut section_y = 0;
+        let mut section_y = 0.0;
 
         // iterate over all flag subsections (vertical)
         for sub in section.subsections.iter() {
             // calculate height of subsection
-            let mut sub_height = (sub.height.as_number().expect("invalid subsection height") * flag_height as f64).round() as usize;
+            let mut sub_height = sub.height.as_number().expect("invalid subsection height") * flag_height;
 
             // clamp section height to edge of flag
             if section_y + sub_height > flag_height {
@@ -104,7 +107,7 @@ pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag) {
             }
 
             // calculate width of subsection
-            let mut sub_width = (sub.width.as_number().expect("invalid subsection width") * section_width_raw * flag_width as f64).round() as usize;
+            let mut sub_width = sub.width.as_number().expect("invalid subsection width") * section_width_raw * flag_width;
 
             // clamp section height to edge of flag
             if section_x + sub_width > flag_width {
@@ -112,7 +115,7 @@ pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag) {
             }
 
             // render part of flag
-            bitmap.draw_rect(flag_x + section_x, flag_y + section_y, sub_width, sub_height, sub.color.into());
+            bitmap.draw_rect((flag_x + section_x).floor() as usize, (flag_y + section_y).floor() as usize, sub_width.ceil() as usize, sub_height.ceil() as usize, sub.color.into());
 
             // increment y position
             section_y += sub_height;

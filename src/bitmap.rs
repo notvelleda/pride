@@ -1,7 +1,12 @@
 //! renderer agnostic bitmap representation
 
+use std::{
+    fmt,
+    str::FromStr,
+};
+
 /// rgb representation of a color
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
@@ -22,6 +27,51 @@ impl From<[u8; 3]> for Color {
             green: f[1],
             blue: f[2],
         }
+    }
+}
+
+impl FromStr for Color {
+    type Err = String;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        // get iterator over string
+        let mut chars = input.chars();
+
+        // get first character
+        if let Some(c) = chars.next() {
+            if c != '#' { // make sure it's valid
+                Err("invalid color".to_string())
+            } else {
+                // parse rest of string as a number in hex notation
+                let num = match usize::from_str_radix(chars.as_str(), 16) {
+                    Ok(num) => num,
+                    Err(err) => return Err(err.to_string()),
+                };
+        
+                // extract red, green, blue components from number
+                if num > 0xffffff {
+                    Err("number too big".to_string())
+                } else {
+                    Ok(Self {
+                        red: ((num >> 16) & 0xff) as u8,
+                        green: ((num >> 8) & 0xff) as u8,
+                        blue: (num & 0xff) as u8,
+                    })
+                }
+            }
+        } else {
+            Err("invalid color".to_string())
+        }
+    }
+}
+
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let num =
+            ((self.red as usize) << 16) |
+            ((self.green as usize) << 8) |
+            (self.blue as usize);
+        write!(f, "#{:06x}", num)
     }
 }
 

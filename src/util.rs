@@ -16,7 +16,11 @@ impl PartialSize {
         } else if let Some(f) = fraction_to_float(&self.0) {
             Some(f)
         } else if let Ok(f) = self.0.parse::<f64>() {
-            Some(f)
+            if f >= 0.0 { // we don't want negatives
+                Some(f)
+            } else {
+                None
+            }
         } else {
             None
         }
@@ -75,5 +79,6 @@ pub fn fraction_to_float(string: &str) -> Option<f64> {
         return None;
     };
 
+    // turn fraction into float
     Some(numerator / denominator)
 }

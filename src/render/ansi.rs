@@ -1,6 +1,12 @@
 //! renderer that renders directly to the terminal with ANSI escape sequences
 
-use crate::bitmap::{Color, Bitmap};
+use crate::bitmap::Bitmap;
+use std::{
+    cmp::min,
+    io::{Write, stdin, stdout},
+};
+use serde::{Serialize, Deserialize};
+use super::Renderer;
 use termion::{
     color, cursor, clear,
     event::Event,
@@ -8,14 +14,34 @@ use termion::{
     raw::IntoRawMode,
     screen::AlternateScreen,
 };
-use std::{
-    cmp::min,
-    io::{Write, stdin, stdout},
-};
-use super::Renderer;
+
+/// options for ANSI renderer
+#[derive(Serialize, Deserialize)]
+pub struct AnsiRendererOptions {
+    #[serde(default)]
+    pub true_color: bool,
+}
+
+impl Default for AnsiRendererOptions {
+    fn default() -> Self {
+        Self {
+            true_color: false,
+        }
+    }
+}
 
 /// renderer that renders directly to the terminal
-pub struct AnsiRenderer;
+pub struct AnsiRenderer {
+    pub options: AnsiRendererOptions,
+}
+
+impl AnsiRenderer {
+    pub fn new(options: &str) -> Self {
+        Self {
+            options: serde_yaml::from_str(options).unwrap(),
+        }
+    }
+}
 
 impl Renderer for AnsiRenderer {
     /// draws a bitmap to the terminal with ANSI escape codes
@@ -31,8 +57,8 @@ impl Renderer for AnsiRenderer {
         sequence.push_str(clear::All.as_ref());
 
         // last color values- used to speed up drawing since we can skip escape sequences for duplicates
-        let mut last_upper_color: Option<Color> = None;
-        let mut last_lower_color: Option<Color> = None;
+        let mut last_upper_color: Option<String> = None;
+        let mut last_lower_color: Option<String> = None;
 
         // convert bitmap to text characters and ANSI escape codes
         for y in (0..min(bitmap.height, term_height)).step_by(2) {
@@ -44,19 +70,32 @@ impl Renderer for AnsiRenderer {
                 let upper_color = bitmap.get(x, y).unwrap();
                 let lower_color = bitmap.get(x, y + 1).unwrap();
 
-                // convert the colors into truecolor escape sequences if they've changed since the last cell
-                // TODO: 8, 16, 256 color support
+                // escape sequence strings for upper and lower colors of character cell (foreground and background with a special character)
+                let upper_color_str;
+                let lower_color_str;
 
-                if if let Some(last) = &last_upper_color { last != &upper_color } else { true } {
-                    sequence.push_str(&color::Rgb(upper_color.red, upper_color.green, upper_color.blue).fg_string());
+                // convert colors into ANSI escape sequences
+                if self.options.true_color {
+                    upper_color_str = color::Rgb(upper_color.red, upper_color.green, upper_color.blue).fg_string();
+                    lower_color_str = color::Rgb(lower_color.red, lower_color.green, lower_color.blue).bg_string();
+                } else {
+                    // alias to 216 colors
+                    upper_color_str = color::AnsiValue::rgb(((upper_color.red as f64 / 256.0) * 5.0) as u8, ((upper_color.green as f64 / 256.0) * 5.0) as u8, ((upper_color.blue as f64 / 256.0) * 5.0) as u8).fg_string();
+                    lower_color_str = color::AnsiValue::rgb(((lower_color.red as f64 / 256.0) * 5.0) as u8, ((lower_color.green as f64 / 256.0) * 5.0) as u8, ((lower_color.blue as f64 / 256.0) * 5.0) as u8).bg_string();
                 }
 
-                if if let Some(last) = &last_lower_color { last != &lower_color } else { true } {
-                    sequence.push_str(&color::Rgb(lower_color.red, lower_color.green, lower_color.blue).bg_string());
+                // add colors to sequence if they've changed at all
+                if if let Some(last) = &last_upper_color { last != &upper_color_str } else { true } {
+                    sequence.push_str(&upper_color_str);
                 }
 
-                last_upper_color = Some(upper_color);
-                last_lower_color = Some(lower_color);
+                if if let Some(last) = &last_lower_color { last != &lower_color_str } else { true } {
+                    sequence.push_str(&lower_color_str);
+                }
+
+                // set last colors to current colors
+                last_upper_color = Some(upper_color_str);
+                last_lower_color = Some(lower_color_str);
 
                 // lastly, write the character for the cell
                 sequence.push('\u{2580}');

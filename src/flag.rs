@@ -39,7 +39,7 @@ pub struct FlagSubSection {
 }
 
 /// render the given flag with the given renderer
-pub fn render_flag(renderer: &mut impl Renderer, flag: &Flag) {
+pub fn render_flag(renderer: &mut Box<dyn Renderer>, flag: &Flag) {
     // get size we can render to
     let (width, height) = renderer.get_size();
     let aspect = width as f64 / height as f64;

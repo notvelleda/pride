@@ -3,11 +3,17 @@
 pub mod ansi;
 pub mod image;
 
+#[cfg(target_os = "linux")]
+pub mod framebuffer;
+
 use self::ansi::{AnsiRenderer, AnsiRendererOptions};
 use crate::bitmap::Bitmap;
 use enum_iterator::{all, Sequence};
 use self::image::{ImageRenderer, ImageRendererOptions};
 use std::str::FromStr;
+
+#[cfg(target_os = "linux")]
+use self::framebuffer::{FramebufferRenderer, FramebufferRendererOptions};
 
 /// describes how the rest of the program should interact with renderers
 pub trait Renderer {
@@ -23,6 +29,9 @@ pub trait Renderer {
 pub enum Renderers {
     Ansi,
     Image,
+
+    #[cfg(target_os = "linux")]
+    Framebuffer,
 }
 
 impl FromStr for Renderers {
@@ -32,6 +41,10 @@ impl FromStr for Renderers {
         match input.to_lowercase().as_ref() {
             "ansi" => Ok(Self::Ansi),
             "image" => Ok(Self::Image),
+
+            #[cfg(target_os = "linux")]
+            "framebuffer" => Ok(Self::Framebuffer),
+
             _ => Err(()),
         }
     }
@@ -55,6 +68,9 @@ pub fn create_renderer(name: Renderers, options: &str) -> Box<dyn Renderer> {
     match name {
         Renderers::Ansi => Box::new(AnsiRenderer::new(options)),
         Renderers::Image => Box::new(ImageRenderer::new(options)),
+
+        #[cfg(target_os = "linux")]
+        Renderers::Framebuffer => Box::new(FramebufferRenderer::new(options)),
     }
 }
 
@@ -67,6 +83,12 @@ pub fn list_options(name: Renderers) {
         },
         Renderers::Image => {
             let options: ImageRendererOptions = Default::default();
+            serde_yaml::to_string(&options).unwrap()
+        },
+
+        #[cfg(target_os = "linux")]
+        Renderers::Framebuffer => {
+            let options: FramebufferRendererOptions = Default::default();
             serde_yaml::to_string(&options).unwrap()
         },
     };

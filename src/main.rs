@@ -4,10 +4,10 @@ pub mod util;
 pub mod flag;
 
 use crate::render::{
+    create_renderer,
     list_renderers,
     list_options,
     Renderers,
-    create_renderer,
 };
 use crate::flag::{Flag, render_flag};
 use clap::Parser;
@@ -52,6 +52,7 @@ fn main() {
         exit(1);
     };
 
+    // list available options if requested
     if let Some(options) = &args.renderer_options {
         if options == "list" {
             list_options(renderer_name);

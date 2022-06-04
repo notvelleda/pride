@@ -1,11 +1,11 @@
 //! renderer that renders directly to the terminal with ANSI escape sequences
 
 use crate::bitmap::Bitmap;
+use serde::{Serialize, Deserialize};
 use std::{
     cmp::min,
     io::{Write, stdin, stdout},
 };
-use serde::{Serialize, Deserialize};
 use super::Renderer;
 use termion::{
     color, cursor, clear,
@@ -16,18 +16,10 @@ use termion::{
 };
 
 /// options for ANSI renderer
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct AnsiRendererOptions {
     #[serde(default)]
     pub true_color: bool,
-}
-
-impl Default for AnsiRendererOptions {
-    fn default() -> Self {
-        Self {
-            true_color: false,
-        }
-    }
 }
 
 /// renderer that renders directly to the terminal
@@ -38,7 +30,13 @@ pub struct AnsiRenderer {
 impl AnsiRenderer {
     pub fn new(options: &str) -> Self {
         Self {
-            options: serde_yaml::from_str(options).unwrap(),
+            options: match serde_yaml::from_str(options) {
+                Ok(options) => options,
+                Err(err) => {
+                    eprintln!("failed to parse renderer options: {err}");
+                    std::process::exit(1);
+                }
+            },
         }
     }
 }

@@ -1,0 +1,11 @@
+# transgender pride flag
+
+aspect: 3/5
+sections:
+  - width: 100%
+    subsections:
+      - { width: 100%, height: 1/5, color: [ 91, 206, 250 ] }
+      - { width: 100%, height: 1/5, color: [ 245, 169, 184 ] }
+      - { width: 100%, height: 1/5, color: [ 255, 255, 255 ] }
+      - { width: 100%, height: 1/5, color: [ 245, 169, 184 ] }
+      - { width: 100%, height: 1/5, color: [ 91, 206, 250 ] }

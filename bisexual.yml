@@ -1,0 +1,9 @@
+# bisexual pride flag
+
+aspect: 3/5
+sections:
+  - width: 100%
+    subsections:
+      - { width: 100%, height: 2/5, color: [ 214, 2, 112 ] }
+      - { width: 100%, height: 1/5, color: [ 0, 56, 168 ] }
+      - { width: 100%, height: 2/5, color: [ 155, 79, 150 ] }

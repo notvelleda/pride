@@ -1,0 +1,10 @@
+# non-binary pride flag
+
+aspect: 3/5
+sections:
+  - width: 100%
+    subsections:
+      - { width: 100%, height: 1/4, color: [ 252, 244, 52 ] }
+      - { width: 100%, height: 1/4, color: [ 255, 255, 255 ] }
+      - { width: 100%, height: 1/4, color: [ 156, 89, 209 ] }
+      - { width: 100%, height: 1/4, color: [ 44, 44, 44 ] }

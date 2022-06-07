@@ -1,0 +1,9 @@
+# pansexual pride flag
+
+aspect: 3/5
+sections:
+  - width: 100%
+    subsections:
+      - { width: 100%, height: 1/3, color: [ 33, 177, 255 ] }
+      - { width: 100%, height: 1/3, color: [ 255, 216, 0 ] }
+      - { width: 100%, height: 1/3, color: [ 255, 33, 140 ] }

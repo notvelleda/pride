@@ -1,0 +1,13 @@
+# lesbian pride flag
+
+aspect: 2/3
+sections:
+  - width: 100%
+    subsections:
+      - { width: 100%, height: 1/7, color: [ 213, 45, 0 ] }
+      - { width: 100%, height: 1/7, color: [ 239, 118, 39 ] }
+      - { width: 100%, height: 1/7, color: [ 255, 154, 86 ] }
+      - { width: 100%, height: 1/7, color: [ 255, 255, 255 ] }
+      - { width: 100%, height: 1/7, color: [ 209, 98, 164 ] }
+      - { width: 100%, height: 1/7, color: [ 181, 86, 144 ] }
+      - { width: 100%, height: 1/7, color: [ 163, 2, 98 ] }}

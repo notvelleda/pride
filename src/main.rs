@@ -52,9 +52,12 @@ fn main() {
     }
 
     // get valid renderer name from list
-    let renderer_name = if let Ok(r) = Renderers::from_str(&renderer_name) { r } else {
-        eprintln!("renderer {} doesn't exist! try \"--renderer list\" to list all available renderers", renderer_name);
-        exit(1);
+    let renderer_name = match Renderers::from_str(&renderer_name) {
+        Ok(name) => name,
+        Err(_) => {
+            eprintln!("renderer {} doesn't exist! try \"--renderer list\" to list all available renderers", renderer_name);
+            exit(1);
+        },
     };
 
     // list available options if requested

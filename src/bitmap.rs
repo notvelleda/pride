@@ -43,10 +43,7 @@ impl FromStr for Color {
                 Err("invalid color".to_string())
             } else {
                 // parse rest of string as a number in hex notation
-                let num = match usize::from_str_radix(chars.as_str(), 16) {
-                    Ok(num) => num,
-                    Err(err) => return Err(err.to_string()),
-                };
+                let num = usize::from_str_radix(chars.as_str(), 16).map_err(|err| err.to_string())?;
         
                 // extract red, green, blue components from number
                 if num > 0xffffff {
